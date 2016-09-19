@@ -7,7 +7,10 @@ def connScan(tgtHost, tgtPort):
     try:
         connSkt = socket(AF_INET, SOCK_STREAM)
         connSkt.connect((tgtHost, tgtPort))
+        connSkt.send('Yasakani no Magatama\r\n')
+        results = connSkt.recv(100)
         print '[+]%d/tcp open' % tgtPort
+        print '[+] ' + str(results)
     except:
         print '[-]%d/tcp closed' % tgtPort
 
@@ -34,19 +37,21 @@ def portScan(tgtHost, tgtPorts):
 
 def main():
 
-    parser = optparse.OptionParser('usage %prog -t <target host> -p <target port>')
+    parser = optparse.OptionParser('usage %prog -t <target host> -p "<target ports>"')
 
     parser.add_option('-t', dest='tgtHost', type='string', help='specify target host')
-    parser.add_option('-p', dest='tgtPort', type='int', help='specify target port')
+    parser.add_option('-p', dest='tgtPorts', type='string', help='specify target ports separated by comma')
 
     options, args = parser.parse_args()
 
     tgtHost = options.tgtHost
-    tgtPort = options.tgtPort
+    tgtPorts = str(options.tgtPorts).split(',')
 
-    if tgtHost == None or tgtPort == None:
+    if tgtHost == None or tgtPorts[0] == None:
         print parser.usage
         exit(0)
+
+    portScan(tgtHost, tgtPorts)
 
 if __name__ == '__main__':
     main()
