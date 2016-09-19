@@ -1,5 +1,8 @@
 import optparse
 from socket import *
+from threading import *
+
+screenLock = Semaphore(value=1)
 
 def connScan(tgtHost, tgtPort):
     """ Will attempt to connect to the given host through the provided port and inform
@@ -8,11 +11,16 @@ def connScan(tgtHost, tgtPort):
         connSkt = socket(AF_INET, SOCK_STREAM)
         connSkt.connect((tgtHost, tgtPort))
         connSkt.send('Yasakani no Magatama\r\n')
-        results = connSkt.recv(100)
+        results = connSkt.recv(1024)
+        screenLock.acquire()
         print '[+]%d/tcp open' % tgtPort
         print '[+] ' + str(results)
     except:
+        screenLock.acquire()
         print '[-]%d/tcp closed' % tgtPort
+    finally:
+        screenLock.release()
+        connSkt.close()
 
 
 def portScan(tgtHost, tgtPorts):
@@ -31,8 +39,8 @@ def portScan(tgtHost, tgtPorts):
 
     setdefaulttimeout(1)
     for port in tgtPorts:
-        print 'Scanning port ' + port
-        connScan(tgtHost, int(port))
+        t = Thread(target=connScan, args=(tgtHost, int(port)))
+        t.start()
 
 
 def main():
